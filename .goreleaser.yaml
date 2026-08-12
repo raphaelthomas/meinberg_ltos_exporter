@@ -52,7 +52,7 @@ changelog:
       regexp: '^.*feat[(\w)/,]*!?:+.*'
       order: 0
     - title: '🐞 Bug Fixes'
-      regexp: '^.*fix[(\w)/,]*:+.*'
+      regexp: '^.*fix[(\w)/,]*!?:+.*'
       order: 1
     - title: '📝 Other Changes'
       order: 999
