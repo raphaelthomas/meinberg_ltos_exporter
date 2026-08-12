@@ -142,20 +142,20 @@ func main() {
 	logLevel.Set(cfg.LogLevel)
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel}))
 
-	logger.Info("Starting Meinberg LTOS Exporter",
-		"version", buildinfo.Version,
-		"listen_address", cfg.ListenAddress,
-		"target", cfg.Target,
-	)
-
-	if cfg.IgnoreSSLVerify {
-		logger.Warn("TLS certificate verification disabled via --ignore-ssl-verify")
-	}
-
 	client, err := ltosapi.NewClient(cfg.Target, cfg.AuthBasicUser, cfg.AuthBasicPass, cfg.IgnoreSSLVerify)
 	if err != nil {
 		logger.Error("failed to create LTOS API client", "error", err)
 		os.Exit(1)
+	}
+
+	logger.Info("Starting Meinberg LTOS Exporter",
+		"version", buildinfo.Version,
+		"listen_address", cfg.ListenAddress,
+		"target", client.Target(),
+	)
+
+	if cfg.IgnoreSSLVerify {
+		logger.Warn("TLS certificate verification disabled via --ignore-ssl-verify")
 	}
 
 	prometheus.MustRegister(collector.NewCollector(cfg.Collector, client, logger))

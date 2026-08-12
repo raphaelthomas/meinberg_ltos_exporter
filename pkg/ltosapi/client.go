@@ -53,6 +53,9 @@ func NewClient(baseURL string, authBasicUser, authBasicPass string, ignoreSSLVer
 	if parsedURL.Scheme == "" || parsedURL.Host == "" {
 		return nil, fmt.Errorf("invalid base URL: must include URL scheme and host")
 	}
+	if parsedURL.User != nil {
+		return nil, fmt.Errorf("invalid base URL: must not contain credentials, use --auth-user and --auth-pass instead")
+	}
 
 	return &Client{
 		baseURL:       *parsedURL,

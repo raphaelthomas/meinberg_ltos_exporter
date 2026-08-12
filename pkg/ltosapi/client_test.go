@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 )
@@ -41,6 +42,36 @@ func TestInvalidTarget(t *testing.T) {
 	_, err = NewClient("foobar", "", "", false)
 	if err == nil {
 		t.Errorf("expected error, got nil for baseURL 'foobar'")
+	}
+}
+
+func TestNewClient_RejectsCredentialsInTarget(t *testing.T) {
+	tests := []struct {
+		name    string
+		baseURL string
+	}{
+		{"user and password", "https://user:pass@clock.example.com"},
+		{"password only", "https://:pass@clock.example.com"},
+		{"user only", "https://user@clock.example.com"},
+		{"empty userinfo", "https://@clock.example.com"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			client, err := NewClient(tt.baseURL, "", "", false)
+			if err == nil {
+				t.Fatalf("expected error for baseURL %q, got nil", tt.baseURL)
+			}
+			if client != nil {
+				t.Error("expected nil client on error")
+			}
+			if !strings.Contains(err.Error(), "must not contain credentials") {
+				t.Errorf("error = %q, want it to mention credentials", err)
+			}
+			if strings.Contains(err.Error(), tt.baseURL) {
+				t.Errorf("error message echoes the target URL and may leak credentials: %q", err)
+			}
+		})
 	}
 }
 
