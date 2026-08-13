@@ -8,5 +8,7 @@ COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 COPY $TARGETPLATFORM/meinberg_ltos_exporter /bin/meinberg_ltos_exporter
 
+USER 65534:65534
+
 EXPOSE 10123
 ENTRYPOINT ["/bin/meinberg_ltos_exporter"]
