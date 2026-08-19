@@ -1,6 +1,6 @@
-# HELP meinberg_ltos_build_info Meinberg device build information as labels (e.g., API version, firmware version, host)
+# HELP meinberg_ltos_build_info Meinberg device build information as labels (e.g., API version, firmware version, firmware architecture, host)
 # TYPE meinberg_ltos_build_info gauge
-meinberg_ltos_build_info{api_version="20.05.013",firmware_version="fw_7.10.008",host="mbg1.time.example.com",target="http://localhost"} 1
+meinberg_ltos_build_info{api_version="20.05.013",firmware_arch="x32",firmware_version="7.10.008",host="mbg1.time.example.com",target="http://localhost"} 1
 
 # HELP meinberg_ltos_clock_estimated_time_quality_seconds Estimated upper bound in seconds on the time quality of the clock
 # TYPE meinberg_ltos_clock_estimated_time_quality_seconds gauge

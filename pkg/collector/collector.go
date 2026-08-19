@@ -106,8 +106,8 @@ func NewCollector(config Config, client StatusFetcher, logger *slog.Logger) *Col
 		buildInfo: typedDesc{
 			desc: prometheus.NewDesc(
 				prometheus.BuildFQName(MetricNamespace, rootSubsystem, "build_info"),
-				"Meinberg device build information as labels (e.g., API version, firmware version, host)",
-				[]string{"target", "host", "api_version", "firmware_version"},
+				"Meinberg device build information as labels (e.g., API version, firmware version, firmware architecture, host)",
+				[]string{"target", "host", "api_version", "firmware_version", "firmware_arch"},
 				nil,
 			),
 			valueType: prometheus.GaugeValue,
@@ -169,7 +169,15 @@ func (c *Collector) Collect(ch chan<- prometheus.Metric) {
 
 	up = 1.0
 	host := status.SystemInformation.Hostname
-	ch <- c.buildInfo.mustNewConstMetric(1.0, c.client.Target(), host, status.Data.RestAPI.Version, status.SystemInformation.Version)
+
+	firmware := status.Data.System.Firmware
+	arch := firmwareArch(firmware.Image, firmware.Running)
+	if arch == "" && firmware.Image != "" {
+		logger.Debug("Failed to derive firmware architecture from firmware image",
+			"firmware_image", firmware.Image, "running_firmware", firmware.Running)
+	}
+	ch <- c.buildInfo.mustNewConstMetric(1.0, c.client.Target(), host,
+		status.Data.RestAPI.Version, firmwareVersion(status.SystemInformation.Version), arch)
 
 	if c.config.System {
 		c.collectSystem(ch, host, status.SystemInformation, status.Data.System, status.Data.Chassis.Slots)

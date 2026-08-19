@@ -1,8 +1,15 @@
 package collector
 
 import (
+	"strings"
+
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/raphaelthomas/meinberg-ltos-exporter/pkg/ltosapi/models"
+)
+
+const (
+	firmwareVersionPrefix = "fw_"
+	firmwareImagePrefix   = "firmware-"
 )
 
 type typedDesc struct {
@@ -12,6 +19,23 @@ type typedDesc struct {
 
 func (td typedDesc) mustNewConstMetric(value float64, labels ...string) prometheus.Metric {
 	return prometheus.MustNewConstMetric(td.desc, td.valueType, value, labels...)
+}
+
+// firmwareVersion strips the prefix of raw form "fw_7.06.014-light". The
+// edition suffix is kept, as it distinguishes firmware builds.
+func firmwareVersion(version string) string {
+	return strings.TrimPrefix(version, firmwareVersionPrefix)
+}
+
+// firmwareArch derives the architecture from the image of raw form
+// "firmware-7.06.014-light-x86". The running version anchors the match, as
+// the version itself may contain the separator.
+func firmwareArch(image, running string) string {
+	arch, ok := strings.CutPrefix(image, firmwareImagePrefix+firmwareVersion(running)+"-")
+	if !ok {
+		return ""
+	}
+	return arch
 }
 
 func boolToFloat64(b bool) float64 {

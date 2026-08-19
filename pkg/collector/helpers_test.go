@@ -52,6 +52,53 @@ func TestForEachSlotWithModule(t *testing.T) {
 	}
 }
 
+func TestFirmwareVersion(t *testing.T) {
+	tests := []struct {
+		name     string
+		version  string
+		expected string
+	}{
+		{"prefixed", "fw_7.10.008", "7.10.008"},
+		{"prefixed with edition", "fw_7.06.014-light", "7.06.014-light"},
+		{"without prefix", "7.10.008", "7.10.008"},
+		{"empty", "", ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := firmwareVersion(tt.version); got != tt.expected {
+				t.Errorf("firmwareVersion(%q) = %q, want %q", tt.version, got, tt.expected)
+			}
+		})
+	}
+}
+
+func TestFirmwareArch(t *testing.T) {
+	tests := []struct {
+		name     string
+		image    string
+		running  string
+		expected string
+	}{
+		{"plain version", "firmware-7.10.008-x32", "fw_7.10.008", "x32"},
+		{"version with edition", "firmware-7.06.014-light-x86", "fw_7.06.014-light", "x86"},
+		{"running without prefix", "firmware-7.10.008-x32", "7.10.008", "x32"},
+		{"image of another version", "firmware-7.10.007-x32", "fw_7.10.008", ""},
+		{"image without arch", "firmware-7.10.008", "fw_7.10.008", ""},
+		{"unexpected image format", "7.10.008-x32", "fw_7.10.008", ""},
+		{"empty image", "", "fw_7.10.008", ""},
+		{"empty running", "firmware-7.10.008-x32", "", ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := firmwareArch(tt.image, tt.running); got != tt.expected {
+				t.Errorf("firmwareArch(%q, %q) = %q, want %q", tt.image, tt.running, got, tt.expected)
+			}
+		})
+	}
+}
+
 func TestBoolToFloat64(t *testing.T) {
 	if got := boolToFloat64(true); got != 1.0 {
 		t.Errorf("boolToFloat64(true) = %v, want 1.0", got)
