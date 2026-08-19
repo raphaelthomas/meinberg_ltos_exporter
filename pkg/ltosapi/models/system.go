@@ -9,10 +9,18 @@ import (
 )
 
 type System struct {
-	UptimeSeconds float64 `json:"uptime"`
-	CPULoad       CPULoad `json:"cpuload"`
-	Memory        Memory  `json:"memory"`
-	Mounts        []Mount `json:"storage"`
+	UptimeSeconds float64  `json:"uptime"`
+	CPULoad       CPULoad  `json:"cpuload"`
+	Memory        Memory   `json:"memory"`
+	Mounts        []Mount  `json:"storage"`
+	Firmware      Firmware `json:"firmware"`
+}
+
+type Firmware struct {
+	Running  string `json:"running"`
+	Selected string `json:"selected"`
+	// Image is the running firmware image of raw form "firmware-7.10.008-x32"
+	Image string `json:"fwimage"`
 }
 
 type CPULoad struct {

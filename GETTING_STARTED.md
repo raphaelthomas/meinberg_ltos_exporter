@@ -89,9 +89,9 @@ curl -s http://localhost:10123/metrics | grep meinberg_ltos
 You should see lines like:
 
 ```
-# HELP meinberg_ltos_build_info Meinberg device build information as labels (e.g., API version, firmware version, host)
+# HELP meinberg_ltos_build_info Meinberg device build information as labels (e.g., API version, firmware version, firmware architecture, host)
 # TYPE meinberg_ltos_build_info gauge
-meinberg_ltos_build_info{api_version="20.05.013",firmware_version="fw_7.10.008",host="mbg1.time.example.com",target="https://mbg1.time.example.com"} 1
+meinberg_ltos_build_info{api_version="20.05.013",firmware_arch="x32",firmware_version="7.10.008",host="mbg1.time.example.com",target="https://mbg1.time.example.com"} 1
 
 [...]
 

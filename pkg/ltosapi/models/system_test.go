@@ -73,6 +73,31 @@ func TestMemory_UnmarshalJSON(t *testing.T) {
 	}
 }
 
+func TestSystem_UnmarshalFirmware(t *testing.T) {
+	input := `{
+		"firmware": {
+			"running": "fw_7.06.014-light",
+			"selected": "fw_7.06.014-light",
+			"fwimage": "firmware-7.06.014-light-x86",
+			"firmware": [{"object-id": "osv", "version": "6.24.26"}]
+		}
+	}`
+
+	var s System
+	if err := json.Unmarshal([]byte(input), &s); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if s.Firmware.Running != "fw_7.06.014-light" {
+		t.Errorf("running = %q, want %q", s.Firmware.Running, "fw_7.06.014-light")
+	}
+	if s.Firmware.Selected != "fw_7.06.014-light" {
+		t.Errorf("selected = %q, want %q", s.Firmware.Selected, "fw_7.06.014-light")
+	}
+	if s.Firmware.Image != "firmware-7.06.014-light-x86" {
+		t.Errorf("image = %q, want %q", s.Firmware.Image, "firmware-7.06.014-light-x86")
+	}
+}
+
 func TestMount_UnmarshalJSON(t *testing.T) {
 	tests := []struct {
 		name       string
