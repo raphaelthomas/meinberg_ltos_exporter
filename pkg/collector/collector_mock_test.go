@@ -199,3 +199,56 @@ func TestCollect_CollectorsDisabled(t *testing.T) {
 		}
 	}
 }
+
+func TestCollect_SlotModuleWithoutInfo(t *testing.T) {
+	mock := &mockFetcher{
+		target: "https://clock.example.com",
+		response: &models.StatusResponse{
+			SystemInformation: models.SystemInformation{Hostname: "clock1"},
+			Data: models.StatusData{
+				RestAPI: models.RestAPI{Version: "20.05.013"},
+				Chassis: models.Chassis{
+					Slots: []models.Slot{
+						{
+							Type: models.SlotTypeClock,
+							Name: "clk1",
+							Module: &models.SlotModule{
+								SyncStatus: &models.SyncStatus{
+									OscillatorType: "ocxo-hq",
+									ClockStatus: models.ClockStatus{
+										Clock:      "synchronized",
+										Oscillator: "warmed-up",
+									},
+								},
+							},
+						},
+						{
+							Type:   models.SlotTypeCPU,
+							Name:   "cpu0",
+							Module: &models.SlotModule{},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	c := collector.NewCollector(allEnabledConfig(), mock, slog.New(slog.DiscardHandler))
+	metrics := collectMetrics(t, c)
+
+	// Must still report sync status, which does not depend on module info
+	syncSamples := metrics["meinberg_ltos_clock_synchronized"]
+	if len(syncSamples) != 1 {
+		t.Fatalf("expected 1 clock_synchronized sample, got %d", len(syncSamples))
+	}
+	if !strings.Contains(syncSamples[0], `clock_id="clk1"`) || !strings.HasSuffix(syncSamples[0], " 1") {
+		t.Errorf("expected clock_synchronized=1 for clk1, got: %s", syncSamples[0])
+	}
+
+	// Must NOT report info metrics for modules without info
+	for _, name := range []string{"meinberg_ltos_clock_info", "meinberg_ltos_system_cpu_info"} {
+		if _, ok := metrics[name]; ok {
+			t.Errorf("did not expect %s for a module without info", name)
+		}
+	}
+}
