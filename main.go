@@ -16,12 +16,15 @@ package main
 
 import (
 	"context"
+	"errors"
 	"html/template"
 	"log/slog"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/alecthomas/kingpin/v2"
 	"github.com/prometheus/client_golang/prometheus"
@@ -199,20 +202,53 @@ func main() {
 
 	srv := &http.Server{Addr: cfg.ListenAddress, Handler: mux}
 
-	go func() {
-		sigCh := make(chan os.Signal, 1)
-		signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
-		sig := <-sigCh
-		logger.Info("Received signal, shutting down HTTP server", "signal", sig)
-		if err := srv.Shutdown(context.Background()); err != nil {
-			logger.Error("HTTP server shutdown error", "error", err)
-		}
-	}()
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 
-	logger.Info("HTTP server listening", "address", cfg.ListenAddress)
+	ln, err := net.Listen("tcp", cfg.ListenAddress)
+	if err != nil {
+		logger.Error("Failed to listen", "address", cfg.ListenAddress, "error", err)
+		os.Exit(1)
+	}
+	logger.Info("HTTP server listening", "address", ln.Addr().String())
 
-	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+	if err := serve(logger, srv, ln, sigCh); err != nil {
 		logger.Error("HTTP server error", "error", err)
 		os.Exit(1)
 	}
+}
+
+// shutdownTimeout bounds how long in-flight scrapes may drain on shutdown.
+const shutdownTimeout = 10 * time.Second
+
+// serve runs srv on ln and shuts it down gracefully on a signal from sigCh.
+func serve(logger *slog.Logger, srv *http.Server, ln net.Listener, sigCh <-chan os.Signal) error {
+	stop := make(chan struct{})
+	shutdownDone := make(chan struct{})
+
+	go func() {
+		defer close(shutdownDone)
+		select {
+		case <-stop:
+		case sig := <-sigCh:
+			logger.Info("Received signal, shutting down HTTP server", "signal", sig)
+			shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+			defer cancel()
+			if err := srv.Shutdown(shutdownCtx); err != nil {
+				logger.Error("HTTP server shutdown error", "error", err)
+			}
+		}
+	}()
+
+	err := srv.Serve(ln)
+	close(stop)
+
+	// Serve returns as soon as the listener closes; wait for the drain.
+	<-shutdownDone
+
+	if err != nil && !errors.Is(err, http.ErrServerClosed) {
+		return err
+	}
+	logger.Info("HTTP server stopped")
+	return nil
 }
