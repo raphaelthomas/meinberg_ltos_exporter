@@ -200,7 +200,7 @@ func main() {
 		})
 	}
 
-	srv := &http.Server{Addr: cfg.ListenAddress, Handler: mux}
+	srv := &http.Server{Addr: cfg.ListenAddress, Handler: mux, ReadHeaderTimeout: 5 * time.Second}
 
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
