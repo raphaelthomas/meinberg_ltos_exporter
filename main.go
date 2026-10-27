@@ -190,7 +190,7 @@ func main() {
 `))
 
 	if cfg.MetricsPath != "/" && cfg.MetricsPath != "" {
-		mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		mux.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "text/html")
 			if err := landingPageTmpl.Execute(w, landingPageData); err != nil {
 				logger.Error("Failed to write response", "error", err)
