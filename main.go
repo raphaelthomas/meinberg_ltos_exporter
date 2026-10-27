@@ -225,7 +225,7 @@ func main() {
 const shutdownTimeout = 10 * time.Second
 
 // serve runs srv on ln and shuts it down gracefully on a signal from sigCh.
-func serve(logger *slog.Logger, srv *http.Server, ln net.Listener, sigCh <-chan os.Signal) error {
+func serve(logger *slog.Logger, srv *http.Server, ln net.Listener, sigCh chan os.Signal) error {
 	stop := make(chan struct{})
 	shutdownDone := make(chan struct{})
 
@@ -234,6 +234,7 @@ func serve(logger *slog.Logger, srv *http.Server, ln net.Listener, sigCh <-chan 
 		select {
 		case <-stop:
 		case sig := <-sigCh:
+			signal.Stop(sigCh)
 			logger.Info("Received signal, shutting down HTTP server", "signal", sig)
 			shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
 			defer cancel()
