@@ -19,10 +19,10 @@ builds:
       - arm64
     ldflags:
       - -s -w
-      - -X github.com/raphaelthomas/meinberg-ltos-exporter/pkg/buildinfo.Version={{.Version}}
-      - -X github.com/raphaelthomas/meinberg-ltos-exporter/pkg/buildinfo.Revision={{.FullCommit}}
-      - -X github.com/raphaelthomas/meinberg-ltos-exporter/pkg/buildinfo.Branch={{.Branch}}
-      - -X github.com/raphaelthomas/meinberg-ltos-exporter/pkg/buildinfo.BuildDate={{.Date}}
+      - -X github.com/raphaelthomas/meinberg_ltos_exporter/pkg/buildinfo.Version={{.Version}}
+      - -X github.com/raphaelthomas/meinberg_ltos_exporter/pkg/buildinfo.Revision={{.FullCommit}}
+      - -X github.com/raphaelthomas/meinberg_ltos_exporter/pkg/buildinfo.Branch={{.Branch}}
+      - -X github.com/raphaelthomas/meinberg_ltos_exporter/pkg/buildinfo.BuildDate={{.Date}}
 
 dockers_v2:
   - id: meinberg_ltos_exporter_docker

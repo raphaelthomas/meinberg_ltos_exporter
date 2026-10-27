@@ -1,9 +1,9 @@
 # Prometheus Exporter for Meinberg LTOS
 
-[![Go Version](https://img.shields.io/github/go-mod/go-version/raphaelthomas/meinberg-ltos-exporter)](https://github.com/raphaelthomas/meinberg-ltos-exporter/blob/main/go.mod)
-[![Latest Release](https://img.shields.io/github/v/release/raphaelthomas/meinberg-ltos-exporter)](https://github.com/raphaelthomas/meinberg-ltos-exporter/releases/latest)
-[![License](https://img.shields.io/github/license/raphaelthomas/meinberg-ltos-exporter)](https://github.com/raphaelthomas/meinberg-ltos-exporter/blob/main/LICENSE)
-[![CI](https://github.com/raphaelthomas/meinberg-ltos-exporter/actions/workflows/ci.yml/badge.svg)](https://github.com/raphaelthomas/meinberg-ltos-exporter/actions/workflows/ci.yml)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/raphaelthomas/meinberg_ltos_exporter)](https://github.com/raphaelthomas/meinberg_ltos_exporter/blob/main/go.mod)
+[![Latest Release](https://img.shields.io/github/v/release/raphaelthomas/meinberg_ltos_exporter)](https://github.com/raphaelthomas/meinberg_ltos_exporter/releases/latest)
+[![License](https://img.shields.io/github/license/raphaelthomas/meinberg_ltos_exporter)](https://github.com/raphaelthomas/meinberg_ltos_exporter/blob/main/LICENSE)
+[![CI](https://github.com/raphaelthomas/meinberg_ltos_exporter/actions/workflows/ci.yml/badge.svg)](https://github.com/raphaelthomas/meinberg_ltos_exporter/actions/workflows/ci.yml)
 
 Prometheus exporter `meinberg_ltos_exporter` is designed for Meinberg devices
 running LTOS. It retrieves the status of a device via its REST API and exposes
@@ -17,7 +17,7 @@ the available data as Prometheus metrics.
 > devices and LTOS versions.
 >
 > Please send a **[device
-> report](https://github.com/raphaelthomas/meinberg-ltos-exporter/issues/new?template=device-report.yml)**
+> report](https://github.com/raphaelthomas/meinberg_ltos_exporter/issues/new?template=device-report.yml)**
 > for any bugs and to help extend compatibility. Include the anonymized JSON
 > output of `/api/status`.
 

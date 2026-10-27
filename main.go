@@ -27,9 +27,9 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	versioncollector "github.com/prometheus/client_golang/prometheus/collectors/version"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/raphaelthomas/meinberg-ltos-exporter/pkg/buildinfo"
-	"github.com/raphaelthomas/meinberg-ltos-exporter/pkg/collector"
-	"github.com/raphaelthomas/meinberg-ltos-exporter/pkg/ltosapi"
+	"github.com/raphaelthomas/meinberg_ltos_exporter/pkg/buildinfo"
+	"github.com/raphaelthomas/meinberg_ltos_exporter/pkg/collector"
+	"github.com/raphaelthomas/meinberg_ltos_exporter/pkg/ltosapi"
 )
 
 // Config holds the exporter configuration

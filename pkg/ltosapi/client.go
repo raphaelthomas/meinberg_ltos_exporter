@@ -23,7 +23,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/raphaelthomas/meinberg-ltos-exporter/pkg/ltosapi/models"
+	"github.com/raphaelthomas/meinberg_ltos_exporter/pkg/ltosapi/models"
 )
 
 const apiStatusPath = "/api/status"

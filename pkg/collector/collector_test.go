@@ -15,8 +15,8 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/expfmt"
-	"github.com/raphaelthomas/meinberg-ltos-exporter/pkg/collector"
-	"github.com/raphaelthomas/meinberg-ltos-exporter/pkg/ltosapi"
+	"github.com/raphaelthomas/meinberg_ltos_exporter/pkg/collector"
+	"github.com/raphaelthomas/meinberg_ltos_exporter/pkg/ltosapi"
 )
 
 const metricsPrefix = collector.MetricNamespace + "_"

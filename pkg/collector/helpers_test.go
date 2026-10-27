@@ -3,7 +3,7 @@ package collector
 import (
 	"testing"
 
-	"github.com/raphaelthomas/meinberg-ltos-exporter/pkg/ltosapi/models"
+	"github.com/raphaelthomas/meinberg_ltos_exporter/pkg/ltosapi/models"
 )
 
 func TestForEachSlotWithModule(t *testing.T) {

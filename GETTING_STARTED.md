@@ -73,7 +73,7 @@ docker run --rm -p 10123:10123 \
 ### Option B: Binary
 
 Download the latest release for your platform from the [releases
-page](https://github.com/raphaelthomas/meinberg-ltos-exporter/releases/latest),
+page](https://github.com/raphaelthomas/meinberg_ltos_exporter/releases/latest),
 extract the archive, and then run:
 
 ```sh

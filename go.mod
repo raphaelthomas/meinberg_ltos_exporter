@@ -1,4 +1,4 @@
-module github.com/raphaelthomas/meinberg-ltos-exporter
+module github.com/raphaelthomas/meinberg_ltos_exporter
 
 go 1.26.0
 
