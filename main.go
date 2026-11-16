@@ -90,8 +90,9 @@ func parseFlags() *Config {
 		Envar(envPrefix + "IGNORE_SSL_VERIFY").
 		BoolVar(&cfg.IgnoreSSLVerify)
 
-	logLevelFlag := app.Flag("log-level", "Log level (debug, info, warn, error)").
+	logLevelFlag := app.Flag("log.level", "Log level (debug, info, warn, error)").
 		Default("info").
+		Envar(envPrefix+"LOG_LEVEL").
 		Enum("debug", "info", "warn", "error")
 
 	app.Flag("collector.system", "Enable system collector.").
@@ -131,9 +132,7 @@ func parseFlags() *Config {
 
 	kingpin.MustParse(app.Parse(os.Args[1:]))
 
-	if err := cfg.LogLevel.UnmarshalText([]byte(*logLevelFlag)); err != nil {
-		cfg.LogLevel = slog.LevelInfo
-	}
+	_ = cfg.LogLevel.UnmarshalText([]byte(*logLevelFlag))
 
 	return cfg
 }

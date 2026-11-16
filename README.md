@@ -62,7 +62,7 @@ Flags:
       --auth-pass=AUTH-PASS      Basic auth password (prefer env var over CLI flag) ($MEINBERG_LTOS_EXPORTER_AUTH_PASS)
       --timeout=5s               Timeout for HTTP requests to Meinberg device ($MEINBERG_LTOS_EXPORTER_TIMEOUT)
       --[no-]ignore-ssl-verify   Ignore SSL certificate verification ($MEINBERG_LTOS_EXPORTER_IGNORE_SSL_VERIFY)
-      --log-level=info           Log level (debug, info, warn, error)
+      --log.level=info           Log level (debug, info, warn, error) ($MEINBERG_LTOS_EXPORTER_LOG_LEVEL)
       --[no-]collector.system    Enable system collector. ($MEINBERG_LTOS_EXPORTER_COLLECTOR_SYSTEM)
       --[no-]collector.notification
                                  Enable notification collector. ($MEINBERG_LTOS_EXPORTER_COLLECTOR_NOTIFICATION)
