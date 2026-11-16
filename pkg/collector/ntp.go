@@ -194,5 +194,5 @@ func (c *Collector) collectNTPPeerAssoc(ch chan<- prometheus.Metric, host string
 		ch <- ntpPeerDispersion.mustNewConstMetric(*assoc.Dispersion, labels...)
 	}
 	ch <- ntpPeerLeapIndicator.mustNewConstMetric(float64(assoc.LeapIndicator), labels...)
-	ch <- ntpPeerSynchronized.mustNewConstMetric(boolToFloat64(assoc.LeapIndicator != models.Unknown), labels...)
+	ch <- ntpPeerSynchronized.mustNewConstMetric(boolToFloat64(assoc.LeapIndicator != models.LeapUnknown), labels...)
 }

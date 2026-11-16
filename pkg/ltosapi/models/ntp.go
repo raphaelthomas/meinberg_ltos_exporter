@@ -12,14 +12,14 @@ type LeapIndicator int
 
 // See RFC 5905
 const (
-	NoWarning              LeapIndicator = iota // no warning
-	LastMinuteHas61Seconds                      // last minute of the day has 61 seconds
-	LastMinuteHas59Seconds                      // last minute of the day has 59 seconds
-	Unknown                                     // unknown (clock unsynchronized)
+	LeapNoWarning              LeapIndicator = iota // no warning
+	LeapLastMinuteHas61Seconds                      // last minute of the day has 61 seconds
+	LeapLastMinuteHas59Seconds                      // last minute of the day has 59 seconds
+	LeapUnknown                                     // unknown (clock unsynchronized)
 )
 
 func (l *LeapIndicator) setFromInt(n int) error {
-	if n < int(NoWarning) || n > int(Unknown) {
+	if n < int(LeapNoWarning) || n > int(LeapUnknown) {
 		return fmt.Errorf("invalid leap indicator value: %d", n)
 	}
 	*l = LeapIndicator(n)

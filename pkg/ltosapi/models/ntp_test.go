@@ -14,12 +14,12 @@ func TestLeapIndicator_UnmarshalJSON(t *testing.T) {
 		expected  LeapIndicator
 		expectErr bool
 	}{
-		{"int 0", `0`, NoWarning, false},
-		{"int 1", `1`, LastMinuteHas61Seconds, false},
-		{"int 2", `2`, LastMinuteHas59Seconds, false},
-		{"int 3", `3`, Unknown, false},
-		{"string 0", `"0"`, NoWarning, false},
-		{"string 3", `"3"`, Unknown, false},
+		{"int 0", `0`, LeapNoWarning, false},
+		{"int 1", `1`, LeapLastMinuteHas61Seconds, false},
+		{"int 2", `2`, LeapLastMinuteHas59Seconds, false},
+		{"int 3", `3`, LeapUnknown, false},
+		{"string 0", `"0"`, LeapNoWarning, false},
+		{"string 3", `"3"`, LeapUnknown, false},
 		{"int out of range", `4`, 0, true},
 		{"int negative", `-1`, 0, true},
 		{"string out of range", `"5"`, 0, true},
