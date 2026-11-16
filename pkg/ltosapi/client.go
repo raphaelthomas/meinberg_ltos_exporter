@@ -70,12 +70,12 @@ func NewClient(baseURL string, authBasicUser, authBasicPass string, ignoreSSLVer
 
 // FetchStatus fetches the target status from the Meinberg LTOS API
 func (c *Client) FetchStatus(ctx context.Context, logger *slog.Logger) (*models.StatusResponse, error) {
-	url := c.baseURL.JoinPath(apiStatusPath).String()
-	logger = logger.With("url", url)
+	statusURL := c.baseURL.JoinPath(apiStatusPath).String()
+	logger = logger.With("url", statusURL)
 
 	logger.Debug("Fetching status from Meinberg LTOS device API")
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, statusURL, nil)
 	if err != nil {
 		return nil, err
 	}
