@@ -106,19 +106,18 @@ type Mount struct {
 }
 
 func (m *Mount) UnmarshalJSON(data []byte) error {
-	aux := &struct {
-		Size       float64 `json:"size"`
-		Used       float64 `json:"used"`
-		Mountpoint string  `json:"mountpoint"`
-	}{}
+	// plain has Mount's fields and tags but not its methods, so decoding into
+	// it does not recurse into this UnmarshalJSON.
+	type plain Mount
+	var p plain
 
-	if err := json.Unmarshal(data, &aux); err != nil {
+	if err := json.Unmarshal(data, &p); err != nil {
 		return fmt.Errorf("failed to unmarshal mount: %w", err)
 	}
 
-	m.Size = aux.Size * 1024
-	m.Used = aux.Used * 1024
-	m.Mountpoint = aux.Mountpoint
+	*m = Mount(p)
+	m.Size *= 1024
+	m.Used *= 1024
 
 	return nil
 }
