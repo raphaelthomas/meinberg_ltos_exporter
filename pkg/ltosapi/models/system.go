@@ -38,7 +38,7 @@ var (
 func (c *CPULoad) UnmarshalJSON(data []byte) error {
 	var rawCPULoadStr string
 	if err := json.Unmarshal(data, &rawCPULoadStr); err != nil {
-		return fmt.Errorf("failed to unmarshal CPU load string: %v", err)
+		return fmt.Errorf("failed to unmarshal CPU load string: %w", err)
 	}
 
 	parts := strings.Fields(rawCPULoadStr)
@@ -49,15 +49,15 @@ func (c *CPULoad) UnmarshalJSON(data []byte) error {
 	var err error
 	c.Load1, err = strconv.ParseFloat(parts[0], 64)
 	if err != nil {
-		return fmt.Errorf("failed to parse 1-minute CPU load: %v", err)
+		return fmt.Errorf("failed to parse 1-minute CPU load: %w", err)
 	}
 	c.Load5, err = strconv.ParseFloat(parts[1], 64)
 	if err != nil {
-		return fmt.Errorf("failed to parse 5-minute CPU load: %v", err)
+		return fmt.Errorf("failed to parse 5-minute CPU load: %w", err)
 	}
 	c.Load15, err = strconv.ParseFloat(parts[2], 64)
 	if err != nil {
-		return fmt.Errorf("failed to parse 15-minute CPU load: %v", err)
+		return fmt.Errorf("failed to parse 15-minute CPU load: %w", err)
 	}
 
 	return nil
@@ -72,7 +72,7 @@ type Memory struct {
 func (m *Memory) UnmarshalJSON(data []byte) error {
 	var rawMemoryStr string
 	if err := json.Unmarshal(data, &rawMemoryStr); err != nil {
-		return fmt.Errorf("failed to unmarshal memory string: %v", err)
+		return fmt.Errorf("failed to unmarshal memory string: %w", err)
 	}
 
 	totalMatches := memTotalRe.FindStringSubmatch(rawMemoryStr)
@@ -81,7 +81,7 @@ func (m *Memory) UnmarshalJSON(data []byte) error {
 	}
 	totalMemoryKB, err := strconv.ParseFloat(totalMatches[1], 64)
 	if err != nil {
-		return fmt.Errorf("failed to parse total memory as float: %v", err)
+		return fmt.Errorf("failed to parse total memory as float: %w", err)
 	}
 
 	freeMatches := memFreeRe.FindStringSubmatch(rawMemoryStr)
@@ -90,7 +90,7 @@ func (m *Memory) UnmarshalJSON(data []byte) error {
 	}
 	freeMemoryKB, err := strconv.ParseFloat(freeMatches[1], 64)
 	if err != nil {
-		return fmt.Errorf("failed to parse free memory as float: %v", err)
+		return fmt.Errorf("failed to parse free memory as float: %w", err)
 	}
 
 	m.Total = totalMemoryKB * 1024
@@ -113,7 +113,7 @@ func (m *Mount) UnmarshalJSON(data []byte) error {
 	}{}
 
 	if err := json.Unmarshal(data, &aux); err != nil {
-		return fmt.Errorf("failed to unmarshal mount: %v", err)
+		return fmt.Errorf("failed to unmarshal mount: %w", err)
 	}
 
 	m.Size = aux.Size * 1024

@@ -55,7 +55,7 @@ func (t TimeQuality) Seconds() float64 {
 func (t *TimeQuality) UnmarshalJSON(data []byte) error {
 	var raw string
 	if err := json.Unmarshal(data, &raw); err != nil {
-		return fmt.Errorf("failed to unmarshal time quality: %v", err)
+		return fmt.Errorf("failed to unmarshal time quality: %w", err)
 	}
 
 	trimmed := strings.TrimPrefix(strings.ToLower(raw), "less-than-")

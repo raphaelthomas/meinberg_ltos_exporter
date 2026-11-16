@@ -24,7 +24,7 @@ func (e *Event) UnmarshalJSON(data []byte) error {
 	}{}
 
 	if err := json.Unmarshal(data, &aux); err != nil {
-		return fmt.Errorf("failed to unmarshal event: %v", err)
+		return fmt.Errorf("failed to unmarshal event: %w", err)
 	}
 
 	e.Type = aux.Type

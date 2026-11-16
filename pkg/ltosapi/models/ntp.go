@@ -34,7 +34,7 @@ func (l *LeapIndicator) UnmarshalJSON(data []byte) error {
 
 	var s string
 	if err := json.Unmarshal(data, &s); err != nil {
-		return fmt.Errorf("failed to unmarshal leap indicator as string: %v", err)
+		return fmt.Errorf("failed to unmarshal leap indicator as string: %w", err)
 	}
 	n, err := strconv.Atoi(s)
 	if err != nil {
@@ -49,11 +49,11 @@ type UnixFromYYYYMMDDhhmm float64
 func (u *UnixFromYYYYMMDDhhmm) UnmarshalJSON(data []byte) error {
 	var leapSecRaw string
 	if err := json.Unmarshal(data, &leapSecRaw); err != nil {
-		return fmt.Errorf("failed to unmarshal leap second string: %v", err)
+		return fmt.Errorf("failed to unmarshal leap second string: %w", err)
 	}
 	leapSecTime, err := time.Parse("200601021504", leapSecRaw)
 	if err != nil {
-		return fmt.Errorf("failed to parse leap second time: %v", err)
+		return fmt.Errorf("failed to parse leap second time: %w", err)
 	}
 
 	*u = UnixFromYYYYMMDDhhmm(leapSecTime.Unix())

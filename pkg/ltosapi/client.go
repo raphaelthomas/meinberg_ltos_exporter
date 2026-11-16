@@ -18,6 +18,7 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -51,10 +52,10 @@ func NewClient(baseURL string, authBasicUser, authBasicPass string, ignoreSSLVer
 		return nil, fmt.Errorf("invalid base URL: %w", err)
 	}
 	if parsedURL.Scheme == "" || parsedURL.Host == "" {
-		return nil, fmt.Errorf("invalid base URL: must include URL scheme and host")
+		return nil, errors.New("invalid base URL: must include URL scheme and host")
 	}
 	if parsedURL.User != nil {
-		return nil, fmt.Errorf("invalid base URL: must not contain credentials, use --auth-user and --auth-pass instead")
+		return nil, errors.New("invalid base URL: must not contain credentials, use --auth-user and --auth-pass instead")
 	}
 
 	return &Client{
