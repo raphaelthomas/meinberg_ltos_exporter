@@ -48,7 +48,10 @@ func TestCollector(t *testing.T) {
 			}))
 			defer srv.Close()
 
-			client, _ := ltosapi.NewClient(srv.URL, "", "", false)
+			client, err := ltosapi.NewClient(srv.URL, "", "", false)
+			if err != nil {
+				t.Fatalf("failed to create client: %v", err)
+			}
 			cfg := collector.Config{
 				Timeout:      5 * time.Second,
 				System:       true,
