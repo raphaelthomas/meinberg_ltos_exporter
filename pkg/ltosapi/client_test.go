@@ -186,6 +186,40 @@ func TestFetchStatus_InvalidJSON(t *testing.T) {
 	}
 }
 
+func TestFetchStatus_ResponseSizeLimit(t *testing.T) {
+	tests := []struct {
+		name    string
+		size    int
+		wantErr bool
+	}{
+		{"at limit", maxStatusResponseSize, false},
+		{"one byte over limit", maxStatusResponseSize + 1, true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Valid JSON padded with trailing whitespace to the exact size.
+			body := []byte(`{}` + strings.Repeat(" ", tt.size-2))
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				mustWrite(t, w, body)
+			}))
+			defer srv.Close()
+
+			client, _ := NewClient(srv.URL, "", "", false)
+			_, err := client.FetchStatus(context.Background(), testLogger())
+			if tt.wantErr {
+				if err == nil || !strings.Contains(err.Error(), "exceeds") {
+					t.Fatalf("err = %v, want size limit error", err)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+		})
+	}
+}
+
 func TestFetchStatus_ConnectionRefused(t *testing.T) {
 	// Point at a closed server to simulate connection refused
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))

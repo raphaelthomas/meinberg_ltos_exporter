@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -27,7 +28,10 @@ import (
 	"github.com/raphaelthomas/meinberg_ltos_exporter/pkg/ltosapi/models"
 )
 
-const apiStatusPath = "/api/status"
+const (
+	apiStatusPath         = "/api/status"
+	maxStatusResponseSize = 1 << 20 // 1 MiB
+)
 
 // Client represents a Meinberg LTOS API client
 type Client struct {
@@ -99,8 +103,18 @@ func (c *Client) FetchStatus(ctx context.Context, logger *slog.Logger) (*models.
 		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 
+	// Read one byte past the limit to tell an oversized response from one
+	// that is exactly at the limit.
+	body, err := io.ReadAll(io.LimitReader(resp.Body, maxStatusResponseSize+1))
+	if err != nil {
+		return nil, fmt.Errorf("failed to read status response: %w", err)
+	}
+	if len(body) > maxStatusResponseSize {
+		return nil, fmt.Errorf("status response exceeds %d bytes", maxStatusResponseSize)
+	}
+
 	var data models.StatusResponse
-	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+	if err := json.Unmarshal(body, &data); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal status response: %w", err)
 	}
 
