@@ -17,11 +17,14 @@ package collector
 
 import (
 	"context"
+	"errors"
 	"log/slog"
+	"net/http"
 	"sync/atomic"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/raphaelthomas/meinberg_ltos_exporter/pkg/ltosapi"
 	"github.com/raphaelthomas/meinberg_ltos_exporter/pkg/ltosapi/models"
 )
 
@@ -53,9 +56,11 @@ type Collector struct {
 	client StatusFetcher
 	logger *slog.Logger
 
-	up             typedDesc
-	scrapeDuration typedDesc
-	buildInfo      typedDesc
+	up                typedDesc
+	apiReachable      typedDesc
+	apiHTTPStatusCode typedDesc
+	scrapeDuration    typedDesc
+	buildInfo         typedDesc
 }
 
 func NewCollector(config Config, client StatusFetcher, logger *slog.Logger) *Collector {
@@ -88,7 +93,25 @@ func NewCollector(config Config, client StatusFetcher, logger *slog.Logger) *Col
 		up: typedDesc{
 			desc: prometheus.NewDesc(
 				prometheus.BuildFQName(MetricNamespace, rootSubsystem, "up"),
-				"Indicates if the Meinberg LTOS device is reachable (1 = up, 0 = down)",
+				"Whether the last scrape of the Meinberg LTOS device succeeded (1 = up, 0 = down)",
+				[]string{"target"},
+				nil,
+			),
+			valueType: prometheus.GaugeValue,
+		},
+		apiReachable: typedDesc{
+			desc: prometheus.NewDesc(
+				prometheus.BuildFQName(MetricNamespace, rootSubsystem, "api_reachable"),
+				"Whether the Meinberg LTOS device API returned an HTTP response, with any status code (1 = yes, 0 = no)",
+				[]string{"target"},
+				nil,
+			),
+			valueType: prometheus.GaugeValue,
+		},
+		apiHTTPStatusCode: typedDesc{
+			desc: prometheus.NewDesc(
+				prometheus.BuildFQName(MetricNamespace, rootSubsystem, "api_http_status_code"),
+				"HTTP status code of the Meinberg LTOS device API response, absent if no response arrived",
 				[]string{"target"},
 				nil,
 			),
@@ -117,6 +140,8 @@ func NewCollector(config Config, client StatusFetcher, logger *slog.Logger) *Col
 
 func (c *Collector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- c.up.desc
+	ch <- c.apiReachable.desc
+	ch <- c.apiHTTPStatusCode.desc
 	ch <- c.scrapeDuration.desc
 	ch <- c.buildInfo.desc
 
@@ -152,22 +177,39 @@ func (c *Collector) Collect(ch chan<- prometheus.Metric) {
 
 	start := time.Now()
 	up := 0.0
+	statusCode := 0 // 0 if no response arrived
 
 	defer func() {
-		seconds := time.Since(start).Seconds()
-		ch <- c.scrapeDuration.mustNewConstMetric(seconds, c.client.Target())
-		ch <- c.up.mustNewConstMetric(up, c.client.Target())
+		target := c.client.Target()
+		ch <- c.scrapeDuration.mustNewConstMetric(time.Since(start).Seconds(), target)
+		ch <- c.up.mustNewConstMetric(up, target)
+		if statusCode == 0 {
+			ch <- c.apiReachable.mustNewConstMetric(0, target)
+			return
+		}
+		ch <- c.apiReachable.mustNewConstMetric(1, target)
+		ch <- c.apiHTTPStatusCode.mustNewConstMetric(float64(statusCode), target)
 	}()
 
 	logger.Debug("Collecting metrics from Meinberg LTOS device", "target", c.client.Target())
 
 	status, err := c.client.FetchStatus(ctx, logger)
 	if err != nil {
-		logger.Warn("Failed to fetch Meinberg LTOS device status", "error", err)
+		var respErr *ltosapi.APIResponseError
+		if errors.As(err, &respErr) {
+			statusCode = respErr.StatusCode
+		}
+		if statusCode == http.StatusOK {
+			// The device answered fine; the exporter can't process the response.
+			logger.Error("Failed to process Meinberg LTOS device status", "error", err)
+		} else {
+			logger.Warn("Failed to fetch Meinberg LTOS device status", "error", err)
+		}
 		return
 	}
 
 	up = 1.0
+	statusCode = http.StatusOK
 	host := status.SystemInformation.Hostname
 
 	firmware := status.Data.System.Firmware

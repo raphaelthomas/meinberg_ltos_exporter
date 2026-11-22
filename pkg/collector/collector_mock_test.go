@@ -2,6 +2,7 @@ package collector_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -9,6 +10,7 @@ import (
 	"time"
 
 	"github.com/raphaelthomas/meinberg_ltos_exporter/pkg/collector"
+	"github.com/raphaelthomas/meinberg_ltos_exporter/pkg/ltosapi"
 	"github.com/raphaelthomas/meinberg_ltos_exporter/pkg/ltosapi/models"
 )
 
@@ -80,6 +82,60 @@ func TestCollect_DeviceUnreachable(t *testing.T) {
 	// Must NOT report build_info (device was unreachable)
 	if _, ok := metrics["meinberg_ltos_build_info"]; ok {
 		t.Error("did not expect build_info when device is unreachable")
+	}
+}
+
+func TestCollect_APIReachability(t *testing.T) {
+	ok := &models.StatusResponse{
+		SystemInformation: models.SystemInformation{Hostname: "clock1"},
+	}
+	respErr := func(code int) error {
+		return &ltosapi.APIResponseError{StatusCode: code, Err: errors.New("test")}
+	}
+
+	tests := []struct {
+		name          string
+		response      *models.StatusResponse
+		err           error
+		wantUp        string
+		wantReachable string
+		wantStatus    string // empty if absent
+	}{
+		{"all good", ok, nil, "1", "1", "200"},
+		{"no response", nil, errors.New("connection refused"), "0", "0", ""},
+		{"wrong credentials", nil, respErr(401), "0", "1", "401"},
+		{"missing role", nil, respErr(403), "0", "1", "403"},
+		{"device problem", nil, respErr(503), "0", "1", "503"},
+		{"unprocessable response", nil, respErr(200), "0", "1", "200"},
+		{"wrapped response error", nil, fmt.Errorf("wrapped: %w", respErr(401)), "0", "1", "401"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mock := &mockFetcher{target: "https://clock.example.com", response: tt.response, err: tt.err}
+			c := collector.NewCollector(allEnabledConfig(), mock, slog.New(slog.DiscardHandler))
+			metrics := collectMetrics(t, c)
+
+			for name, want := range map[string]string{
+				"meinberg_ltos_up":                   tt.wantUp,
+				"meinberg_ltos_api_reachable":        tt.wantReachable,
+				"meinberg_ltos_api_http_status_code": tt.wantStatus,
+			} {
+				samples := metrics[name]
+				if want == "" {
+					if len(samples) != 0 {
+						t.Errorf("did not expect %s, got: %v", name, samples)
+					}
+					continue
+				}
+				if len(samples) != 1 {
+					t.Fatalf("expected 1 %s sample, got %d", name, len(samples))
+				}
+				if !strings.HasSuffix(samples[0], " "+want) {
+					t.Errorf("expected %s=%s, got: %s", name, want, samples[0])
+				}
+			}
+		})
 	}
 }
 

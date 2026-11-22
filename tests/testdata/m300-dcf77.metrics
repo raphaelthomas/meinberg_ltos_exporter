@@ -1,3 +1,11 @@
+# HELP meinberg_ltos_api_http_status_code HTTP status code of the Meinberg LTOS device API response, absent if no response arrived
+# TYPE meinberg_ltos_api_http_status_code gauge
+meinberg_ltos_api_http_status_code{target="http://localhost"} 200
+
+# HELP meinberg_ltos_api_reachable Whether the Meinberg LTOS device API returned an HTTP response, with any status code (1 = yes, 0 = no)
+# TYPE meinberg_ltos_api_reachable gauge
+meinberg_ltos_api_reachable{target="http://localhost"} 1
+
 # HELP meinberg_ltos_build_info Meinberg device build information as labels (e.g., API version, firmware version, firmware architecture, host)
 # TYPE meinberg_ltos_build_info gauge
 meinberg_ltos_build_info{api_version="10.21.016",firmware_arch="x86",firmware_version="7.06.014-light",host="mbg2.time.example.com",target="http://localhost"} 1
@@ -164,6 +172,6 @@ meinberg_ltos_system_memory_free_bytes{host="mbg2.time.example.com"} 5.8179584e+
 # TYPE meinberg_ltos_system_uptime_seconds gauge
 meinberg_ltos_system_uptime_seconds{host="mbg2.time.example.com"} 960935.94
 
-# HELP meinberg_ltos_up Indicates if the Meinberg LTOS device is reachable (1 = up, 0 = down)
+# HELP meinberg_ltos_up Whether the last scrape of the Meinberg LTOS device succeeded (1 = up, 0 = down)
 # TYPE meinberg_ltos_up gauge
 meinberg_ltos_up{target="http://localhost"} 1

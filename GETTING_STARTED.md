@@ -95,7 +95,7 @@ meinberg_ltos_build_info{api_version="20.05.013",firmware_arch="x32",firmware_ve
 
 [...]
 
-# HELP meinberg_ltos_up Indicates if the Meinberg LTOS device is reachable (1 = up, 0 = down)
+# HELP meinberg_ltos_up Whether the last scrape of the Meinberg LTOS device succeeded (1 = up, 0 = down)
 # TYPE meinberg_ltos_up gauge
 meinberg_ltos_up{target="https://mbg1.time.example.com"} 1
 ```
