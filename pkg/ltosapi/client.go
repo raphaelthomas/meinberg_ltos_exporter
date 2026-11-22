@@ -33,6 +33,18 @@ const (
 	maxStatusResponseSize = 1 << 20 // 1 MiB
 )
 
+// APIResponseError is returned when the device's API responded, but the
+// response could not be used. Failures before a response arrived (DNS,
+// connection, TLS, timeout) are returned as is.
+type APIResponseError struct {
+	StatusCode int
+	Err        error
+}
+
+func (e *APIResponseError) Error() string { return e.Err.Error() }
+
+func (e *APIResponseError) Unwrap() error { return e.Err }
+
 // Client represents a Meinberg LTOS API client
 type Client struct {
 	baseURL       url.URL
@@ -100,12 +112,26 @@ func (c *Client) FetchStatus(ctx context.Context, logger *slog.Logger) (*models.
 
 	if resp.StatusCode != http.StatusOK {
 		logger.Warn("Unexpected status code from Meinberg LTOS device API", "status_code", resp.StatusCode)
-		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+		return nil, &APIResponseError{
+			StatusCode: resp.StatusCode,
+			Err:        fmt.Errorf("unexpected status code: %d", resp.StatusCode),
+		}
 	}
 
+	data, err := decodeStatus(resp.Body)
+	if err != nil {
+		return nil, &APIResponseError{StatusCode: resp.StatusCode, Err: err}
+	}
+
+	logger.Debug("Successfully fetched status from Meinberg LTOS device API")
+	return data, nil
+}
+
+// decodeStatus reads and decodes a status response body.
+func decodeStatus(r io.Reader) (*models.StatusResponse, error) {
 	// Read one byte past the limit to tell an oversized response from one
 	// that is exactly at the limit.
-	body, err := io.ReadAll(io.LimitReader(resp.Body, maxStatusResponseSize+1))
+	body, err := io.ReadAll(io.LimitReader(r, maxStatusResponseSize+1))
 	if err != nil {
 		return nil, fmt.Errorf("failed to read status response: %w", err)
 	}
@@ -117,7 +143,5 @@ func (c *Client) FetchStatus(ctx context.Context, logger *slog.Logger) (*models.
 	if err := json.Unmarshal(body, &data); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal status response: %w", err)
 	}
-
-	logger.Debug("Successfully fetched status from Meinberg LTOS device API")
 	return &data, nil
 }

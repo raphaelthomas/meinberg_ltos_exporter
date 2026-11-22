@@ -2,6 +2,8 @@ package ltosapi
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -215,6 +217,93 @@ func TestFetchStatus_ResponseSizeLimit(t *testing.T) {
 			}
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
+			}
+		})
+	}
+}
+
+func TestFetchStatus_APIResponseError(t *testing.T) {
+	tests := []struct {
+		name       string
+		statusCode int
+		body       string
+	}{
+		{"401 unauthorized", http.StatusUnauthorized, ""},
+		{"500 server error", http.StatusInternalServerError, ""},
+		{"oversized response", http.StatusOK, strings.Repeat(" ", maxStatusResponseSize+1)},
+		{"invalid JSON", http.StatusOK, `not valid json`},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(tt.statusCode)
+				mustWrite(t, w, []byte(tt.body))
+			}))
+			defer srv.Close()
+
+			client, _ := NewClient(srv.URL, "", "", false)
+			_, err := client.FetchStatus(context.Background(), testLogger())
+
+			var respErr *APIResponseError
+			if !errors.As(err, &respErr) {
+				t.Fatalf("err = %v (%T), want *APIResponseError", err, err)
+			}
+			if respErr.StatusCode != tt.statusCode {
+				t.Errorf("StatusCode = %d, want %d", respErr.StatusCode, tt.statusCode)
+			}
+		})
+	}
+}
+
+func TestFetchStatus_APIResponseErrorUnwraps(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mustWrite(t, w, []byte(`not valid json`))
+	}))
+	defer srv.Close()
+
+	client, _ := NewClient(srv.URL, "", "", false)
+	_, err := client.FetchStatus(context.Background(), testLogger())
+
+	var syntaxErr *json.SyntaxError
+	if !errors.As(err, &syntaxErr) {
+		t.Fatalf("err = %v, want it to wrap *json.SyntaxError", err)
+	}
+}
+
+func TestFetchStatus_NoResponseIsNotAPIResponseError(t *testing.T) {
+	closed := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+	closedURL := closed.URL
+	closed.Close()
+
+	slow := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		<-r.Context().Done()
+	}))
+	defer slow.Close()
+
+	cancelled, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	tests := []struct {
+		name string
+		url  string
+		ctx  context.Context
+	}{
+		{"connection refused", closedURL, context.Background()},
+		{"context cancelled", slow.URL, cancelled},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			client, _ := NewClient(tt.url, "", "", false)
+			_, err := client.FetchStatus(tt.ctx, testLogger())
+			if err == nil {
+				t.Fatal("expected error")
+			}
+
+			var respErr *APIResponseError
+			if errors.As(err, &respErr) {
+				t.Errorf("err = %v is an *APIResponseError, want a plain error", err)
 			}
 		})
 	}
